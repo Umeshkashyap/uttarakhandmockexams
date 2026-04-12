@@ -1,0 +1,2 @@
+# UttarakhandMockExams uses Python stdlib only
+# No external packages required!

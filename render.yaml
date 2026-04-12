@@ -1,0 +1,29 @@
+# render.yaml — UttarakhandMockExams Render Blueprint
+# This file auto-configures your Render deployment
+
+services:
+  - type: web
+    name: uttarakhandmockexams
+    runtime: python
+    buildCommand: |
+      mkdir -p static
+      cp frontend.html static/index.html
+      python3 seed.py
+    startCommand: python3 server.py
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_SECRET
+        value: ume_admin_2024
+      - key: DB_PATH
+        value: /opt/render/project/src/uttarakhandmockexams.db
+      - key: UPLOAD_DIR
+        value: /opt/render/project/src/uploads
+      - key: STATIC_DIR
+        value: /opt/render/project/src/static
+    disk:
+      name: ume-data
+      mountPath: /opt/render/project/src
+      sizeGB: 1
