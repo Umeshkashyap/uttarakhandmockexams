@@ -1,4 +1,4 @@
-# SUBJECTS DATA
+# ================= SUBJECTS =================
 SUBJECTS = [
     {
         "name": "Mathematics",
@@ -18,8 +18,7 @@ SUBJECTS = [
     }
 ]
 
-
-# QUESTIONS DATA (IMPORTANT)
+# ================= QUESTIONS =================
 QUESTIONS = {
     "Mathematics": [
         {
