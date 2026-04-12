@@ -36,8 +36,12 @@ def seed():
     for s in SUBJECTS:
         cur = conn.execute(
             "INSERT INTO subjects (name,name_hindi,icon,color_class,exam_types,sort_order) VALUES (?,?,?,?,?,?)",
-            (s["name"], s["name_hindi"], s["icon"], s["color_class"],
-             json.dumps(s["exam_types"]), s["sort_order"])
+            (s["name"],
+             s.get("name_hindi", ""),
+             s.get("icon", ""),
+             s.get("color_class", ""),
+             json.dumps(s.get("exam_types", [])),
+             s.get("sort_order", 0))
         )
         subject_ids[s["name"]] = cur.lastrowid
         print(f"  ✓  Subject: {s['icon']}  {s['name']}  (id={cur.lastrowid})")
