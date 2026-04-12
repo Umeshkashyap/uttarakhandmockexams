@@ -1,3 +1,4 @@
+# SUBJECTS DATA
 SUBJECTS = [
     {
         "name": "Mathematics",
@@ -14,13 +15,30 @@ SUBJECTS = [
         "color_class": "bg-green-500",
         "exam_types": ["SSC", "Railway"],
         "sort_order": 2
-    },
-    {
-        "name": "General Knowledge",
-        "name_hindi": "सामान्य ज्ञान",
-        "icon": "📘",
-        "color_class": "bg-purple-500",
-        "exam_types": ["SSC", "UKPSC"],
-        "sort_order": 3
     }
 ]
+
+
+# QUESTIONS DATA (IMPORTANT)
+QUESTIONS = {
+    "Mathematics": [
+        {
+            "qe": "2 + 2 = ?",
+            "qh": "2 + 2 = ?",
+            "opts": ["1", "2", "3", "4"],
+            "ans": 4,
+            "exp": "2+2=4",
+            "diff": "easy"
+        }
+    ],
+    "Science": [
+        {
+            "qe": "Water formula?",
+            "qh": "पानी का सूत्र क्या है?",
+            "opts": ["CO2", "H2O", "O2", "NaCl"],
+            "ans": 2,
+            "exp": "Water = H2O",
+            "diff": "easy"
+        }
+    ]
+}
