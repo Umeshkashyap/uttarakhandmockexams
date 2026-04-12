@@ -1,21 +1,26 @@
 SUBJECTS = [
-    {"id": 1, "name": "Math"},
-    {"id": 2, "name": "Science"}
-]
-
-QUESTIONS = [
     {
-        "id": 1,
-        "subject_id": 1,
-        "question": "2 + 2 = ?",
-        "options": ["1", "2", "3", "4"],
-        "answer": "4"
+        "name": "Mathematics",
+        "name_hindi": "गणित",
+        "icon": "📐",
+        "color_class": "bg-blue-500",
+        "exam_types": ["SSC", "UKPSC"],
+        "sort_order": 1
     },
     {
-        "id": 2,
-        "subject_id": 2,
-        "question": "Water formula?",
-        "options": ["CO2", "H2O", "O2", "NaCl"],
-        "answer": "H2O"
+        "name": "Science",
+        "name_hindi": "विज्ञान",
+        "icon": "🔬",
+        "color_class": "bg-green-500",
+        "exam_types": ["SSC", "Railway"],
+        "sort_order": 2
+    },
+    {
+        "name": "General Knowledge",
+        "name_hindi": "सामान्य ज्ञान",
+        "icon": "📘",
+        "color_class": "bg-purple-500",
+        "exam_types": ["SSC", "UKPSC"],
+        "sort_order": 3
     }
 ]
