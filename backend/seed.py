@@ -11,7 +11,7 @@ os.environ.setdefault("DB_PATH", "./uttarakhandmockexams.db")
 
 from database import init_db, get_conn
 from auth_utils import hash_password
-#from seed_data import SUBJECTS, QUESTIONS
+from seed_data import SUBJECTS, QUESTIONS
 
 def seed():
     print("\n🌱  Seeding UttarakhandMockExams database...\n")
