@@ -1,7 +1,4 @@
-"""
-UttarakhandMockExams — Database Layer v2
-SQLite3 with exam_category support
-"""
+"""UttarakhandMockExams — Database Layer"""
 import sqlite3, os
 
 DB_PATH = os.environ.get("DB_PATH", "./uttarakhandmockexams.db")
@@ -16,28 +13,15 @@ def get_conn():
 def init_db():
     conn = get_conn()
     conn.executescript("""
-        CREATE TABLE IF NOT EXISTS exam_categories (
+        CREATE TABLE IF NOT EXISTS subjects (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            code        TEXT UNIQUE NOT NULL,
             name        TEXT NOT NULL,
             name_hindi  TEXT NOT NULL,
-            icon        TEXT NOT NULL,
-            description TEXT,
-            color       TEXT NOT NULL DEFAULT '#FF6B00',
-            sort_order  INTEGER NOT NULL DEFAULT 0,
-            is_active   INTEGER NOT NULL DEFAULT 1
-        );
-        CREATE TABLE IF NOT EXISTS subjects (
-            id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            category_code   TEXT NOT NULL,
-            name            TEXT NOT NULL,
-            name_hindi      TEXT NOT NULL,
-            icon            TEXT NOT NULL,
-            color_class     TEXT NOT NULL DEFAULT 'cgs',
-            exam_types      TEXT NOT NULL DEFAULT '[]',
-            description     TEXT,
-            is_active       INTEGER NOT NULL DEFAULT 1,
-            sort_order      INTEGER NOT NULL DEFAULT 0
+            icon        TEXT NOT NULL DEFAULT '📚',
+            color_class TEXT NOT NULL DEFAULT 'cgs',
+            exam_types  TEXT NOT NULL DEFAULT '[]',
+            is_active   INTEGER NOT NULL DEFAULT 1,
+            sort_order  INTEGER NOT NULL DEFAULT 0
         );
         CREATE TABLE IF NOT EXISTS daily_sets (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,30 +37,27 @@ def init_db():
             marking_wrong   INTEGER NOT NULL DEFAULT 1,
             pdf_source      TEXT,
             is_published    INTEGER NOT NULL DEFAULT 0,
-            created_by      TEXT,
             created_at      TEXT NOT NULL DEFAULT (datetime('now')),
             UNIQUE(subject_id, day_number)
         );
         CREATE TABLE IF NOT EXISTS questions (
-            id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            set_id          INTEGER NOT NULL REFERENCES daily_sets(id) ON DELETE CASCADE,
-            q_number        INTEGER NOT NULL,
-            question_en     TEXT NOT NULL,
-            question_hi     TEXT,
-            option_a_en     TEXT NOT NULL,
-            option_b_en     TEXT NOT NULL,
-            option_c_en     TEXT NOT NULL,
-            option_d_en     TEXT NOT NULL,
-            option_a_hi     TEXT,
-            option_b_hi     TEXT,
-            option_c_hi     TEXT,
-            option_d_hi     TEXT,
-            correct_ans     INTEGER NOT NULL,
-            explanation     TEXT,
-            explanation_hi  TEXT,
-            difficulty      TEXT DEFAULT 'medium',
-            tags            TEXT,
-            created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            set_id      INTEGER NOT NULL REFERENCES daily_sets(id) ON DELETE CASCADE,
+            q_number    INTEGER NOT NULL,
+            question_en TEXT NOT NULL,
+            question_hi TEXT,
+            option_a_en TEXT NOT NULL,
+            option_b_en TEXT NOT NULL,
+            option_c_en TEXT NOT NULL,
+            option_d_en TEXT NOT NULL,
+            option_a_hi TEXT,
+            option_b_hi TEXT,
+            option_c_hi TEXT,
+            option_d_hi TEXT,
+            correct_ans INTEGER NOT NULL,
+            explanation TEXT,
+            difficulty  TEXT DEFAULT 'medium',
+            created_at  TEXT NOT NULL DEFAULT (datetime('now'))
         );
         CREATE TABLE IF NOT EXISTS users (
             id          TEXT PRIMARY KEY,
@@ -106,20 +87,19 @@ def init_db():
             status          TEXT NOT NULL DEFAULT 'in_progress'
         );
         CREATE TABLE IF NOT EXISTS attempt_answers (
-            id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            attempt_id      TEXT NOT NULL REFERENCES exam_attempts(id) ON DELETE CASCADE,
-            question_id     INTEGER NOT NULL REFERENCES questions(id),
-            q_number        INTEGER NOT NULL,
-            selected_ans    INTEGER,
-            is_correct      INTEGER,
-            is_marked       INTEGER NOT NULL DEFAULT 0,
-            time_spent_sec  INTEGER DEFAULT 0
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            attempt_id  TEXT NOT NULL REFERENCES exam_attempts(id) ON DELETE CASCADE,
+            question_id INTEGER NOT NULL REFERENCES questions(id),
+            q_number    INTEGER NOT NULL,
+            selected_ans INTEGER,
+            is_correct  INTEGER,
+            is_marked   INTEGER NOT NULL DEFAULT 0,
+            time_spent_sec INTEGER DEFAULT 0
         );
         CREATE TABLE IF NOT EXISTS pdf_uploads (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
             filename        TEXT NOT NULL,
             original_name   TEXT NOT NULL,
-            file_type       TEXT NOT NULL DEFAULT 'pdf',
             subject_id      INTEGER REFERENCES subjects(id),
             exam_types      TEXT,
             day_number      INTEGER,
@@ -143,17 +123,16 @@ def init_db():
             last_attempted  TEXT,
             UNIQUE(user_id, subject_id, day_number)
         );
-        CREATE INDEX IF NOT EXISTS idx_questions_set    ON questions(set_id);
-        CREATE INDEX IF NOT EXISTS idx_attempts_user    ON exam_attempts(user_id);
-        CREATE INDEX IF NOT EXISTS idx_attempts_set     ON exam_attempts(set_id);
-        CREATE INDEX IF NOT EXISTS idx_answers_attempt  ON attempt_answers(attempt_id);
-        CREATE INDEX IF NOT EXISTS idx_progress_user    ON user_progress(user_id);
-        CREATE INDEX IF NOT EXISTS idx_sets_subject     ON daily_sets(subject_id);
-        CREATE INDEX IF NOT EXISTS idx_subjects_cat     ON subjects(category_code);
+        CREATE INDEX IF NOT EXISTS idx_questions_set   ON questions(set_id);
+        CREATE INDEX IF NOT EXISTS idx_attempts_user   ON exam_attempts(user_id);
+        CREATE INDEX IF NOT EXISTS idx_attempts_set    ON exam_attempts(set_id);
+        CREATE INDEX IF NOT EXISTS idx_answers_attempt ON attempt_answers(attempt_id);
+        CREATE INDEX IF NOT EXISTS idx_progress_user   ON user_progress(user_id);
+        CREATE INDEX IF NOT EXISTS idx_sets_subject    ON daily_sets(subject_id);
     """)
     conn.commit()
     conn.close()
-    print("[DB] Schema ready v2 ✓")
+    print("[DB] Schema ready ✓")
 
 def row_to_dict(r): return dict(r) if r else None
 def rows_to_list(rs): return [dict(r) for r in rs]
