@@ -172,10 +172,10 @@ def subjects_create(body, headers, params):
     conn = get_conn()
     try:
         r = conn.execute(
-            "INSERT INTO subjects (name,name_hindi,icon,color_class,exam_types,exam_category,sort_order) VALUES (?,?,?,?,?,?,?)",
+            "INSERT INTO subjects (name,name_hindi,icon,color_class,exam_types,sort_order) VALUES (?,?,?,?,?,?)",
             (body["name"],body.get("name_hindi",body["name"]),body.get("icon","📚"),
-             body.get("color_class","c-gs"),json.dumps(body.get("exam_types",[])),
-             body.get("exam_category","SSC"),body.get("sort_order",99))
+             body.get("color_class","cgs"),json.dumps(body.get("exam_types",[])),
+             body.get("sort_order",99))
         )
         conn.commit()
         return ok({"id":r.lastrowid,"message":"Subject created."}, 201)
@@ -232,9 +232,16 @@ def subject_sets(body, headers, params, subject_id):
 # EXAM HANDLERS
 # ─────────────────────────────────────────────────────────────────────────────
 def exam_start(body, headers, params, set_id):
-    uj = require_auth(headers)
-    uid = uj["id"]
+    # Allow guests — if no token, use guest session id from body
+    try:
+        uj = require_auth(headers)
+        uid = uj["id"]
+    except:
+        guest_id = body.get("guest_id") or "guest_" + str(set_id)
+        uid = guest_id
     conn = get_conn()
+    # Disable FK for guest users who aren't in users table
+    conn.execute("PRAGMA foreign_keys=OFF")
     try:
         s = row_to_dict(conn.execute(
             "SELECT ds.*,su.name as subject_name,su.name_hindi FROM daily_sets ds "
@@ -270,7 +277,7 @@ def exam_start(body, headers, params, set_id):
         questions = rows_to_list(conn.execute(
             "SELECT id,q_number,question_en,question_hi,"
             "option_a_en,option_b_en,option_c_en,option_d_en,"
-            "option_a_hi,option_b_hi,option_c_hi,option_d_hi,difficulty,tags "
+            "option_a_hi,option_b_hi,option_c_hi,option_d_hi,correct_ans,difficulty,tags "
             "FROM questions WHERE set_id=? ORDER BY q_number",(set_id,)
         ).fetchall())
 
@@ -297,11 +304,15 @@ def exam_start(body, headers, params, set_id):
     finally: conn.close()
 
 def exam_save_answer(body, headers, params, attempt_id):
-    uj = require_auth(headers)
+    try:
+        uj = require_auth(headers)
+    except:
+        uj = {"id": "guest"}
     conn = get_conn()
+    conn.execute("PRAGMA foreign_keys=OFF")
     try:
         if not conn.execute(
-            "SELECT id FROM exam_attempts WHERE id=? AND user_id=? AND status='in_progress'",(attempt_id,uj["id"])
+            "SELECT id FROM exam_attempts WHERE id=? AND status='in_progress'",(attempt_id,)
         ).fetchone():
             return err("Attempt not found or already submitted.",404)
         q_id=body.get("question_id"); q_num=body.get("q_number")
@@ -317,10 +328,17 @@ def exam_save_answer(body, headers, params, attempt_id):
     finally: conn.close()
 
 def exam_submit(body, headers, params, attempt_id):
-    uj = require_auth(headers)
-    conn = get_conn()
     try:
+        uj = require_auth(headers)
+    except:
+        uj = {"id": "guest"}
+    conn = get_conn()
+    conn.execute("PRAGMA foreign_keys=OFF")
+    try:
+        # Try exact match first, then by attempt_id only (for guests)
         att = row_to_dict(conn.execute("SELECT * FROM exam_attempts WHERE id=? AND user_id=?",(attempt_id,uj["id"])).fetchone())
+        if not att:
+            att = row_to_dict(conn.execute("SELECT * FROM exam_attempts WHERE id=?",(attempt_id,)).fetchone())
         if not att: return err("Attempt not found.",404)
         if att["status"]=="submitted": return err("Already submitted.",409)
         result = _compute_and_submit(conn, att, body.get("answers",[]))
@@ -329,14 +347,18 @@ def exam_submit(body, headers, params, attempt_id):
     finally: conn.close()
 
 def exam_result(body, headers, params, attempt_id):
-    uj = require_auth(headers)
+    try:
+        uj = require_auth(headers)
+    except:
+        uj = {"id": "guest"}
     conn = get_conn()
+    conn.execute("PRAGMA foreign_keys=OFF")
     try:
         att = row_to_dict(conn.execute(
             "SELECT ea.*,ds.title,ds.title_hindi,ds.marking_correct,ds.marking_wrong,ds.day_number,"
             "s.name as subject_name,s.icon FROM exam_attempts ea "
             "JOIN daily_sets ds ON ds.id=ea.set_id JOIN subjects s ON s.id=ds.subject_id "
-            "WHERE ea.id=? AND ea.user_id=? AND ea.status='submitted'",(attempt_id,uj["id"])
+            "WHERE ea.id=? AND ea.status='submitted'",(attempt_id,)
         ).fetchone())
         if not att: return err("Result not found.",404)
         answers = rows_to_list(conn.execute(
